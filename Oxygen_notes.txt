@@ -1,0 +1,1 @@
+Changed Temp factor to be per atom, not per molecule

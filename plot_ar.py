@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt   # type: ignore
 ##############################################
 
 NVE_START = 0
-NUM_RUNS = 1200000
-MASS = 0.016/6.02E23              # Atomic mass
+NUM_RUNS = 300000
+MASS = 0.016*2.0/6.02E23              # Atomic mass
 Timestep = 4.0E-15
 data = np.loadtxt('Energies_O2.txt')
 data[:, 0] = np.multiply(data[:, 0], 1.0E12)    # Change time to ps
@@ -25,8 +25,8 @@ plt.rcParams.update({'font.size': 20})
 plt.plot(data[:, 0], np.multiply(data[:, 1], 1.0E15), label='Potential')
 plt.plot(data[:, 0], np.multiply(data[:, 2], 1.0E15), label='Kinetic')
 plt.plot(data[:, 0], np.multiply(data[:, 3], 1.0E15), label='Total')
-plt.plot([data[NVE_START, 0], data[NVE_START, 0]], [-1E-2, 0.2E-2], 'k')
-plt.axis([-10, data[data.shape[0]-1, 0], -1E-2, 0.2E-2])
+#plt.plot([data[NVE_START, 0], data[NVE_START, 0]], [-1E-2, 0.2E-2], 'k')
+#plt.axis([-10, data[data.shape[0]-1, 0], -1E-2, 0.2E-2])
 plt.xlabel('time (ps)')
 plt.ylabel('Energy (fJ)')
 plt.legend(loc='center right')
@@ -54,9 +54,9 @@ plt.figure(figsize=(15,8))
 plt.plot(data4, data3, 'k')
 plt.xlabel('time (ps)')
 plt.ylabel('Temperature (K)')
-plt.axis([0, 150, 67, 87])
-plt.plot([0, 150], [np.mean(data3[NVE_START:NUM_RUNS]),np.mean(data3[NVE_START:NUM_RUNS])], 'r')
-plt.plot([0, 150], [77, 77], '--r')
+plt.axis([0, data4[data4.shape[0]-1], 71, 83])
+plt.plot([0, data4[data4.shape[0]-1]], [np.mean(data3[NVE_START:NUM_RUNS]),np.mean(data3[NVE_START:NUM_RUNS])], 'r')
+plt.plot([0, data4[data4.shape[0]-1]], [77, 77], '--r')
 
 plt.savefig('O2_Temp_NVE.png', bbox_inches='tight')
 plt.show()
@@ -84,7 +84,9 @@ print(np.std(data3[NVE_START:NUM_RUNS]))
 
 # Calculate average temp in NVE
 mean_temp = np.mean(data3[NVE_START:NUM_RUNS])
-
+massO=0.016/(6.02E23)
+eq_v = (3.0*(1.38064852E-23)*mean_temp/massO)
+print(eq_v)
 # Plot 100 time step moving average of Temp
 
 # temp_binned = np.zeros(data3.shape[0])
@@ -115,33 +117,27 @@ KB = 1.38064852E-23
 EPSILON = 120.0*KB
 SCALE_FACTOR = math.sqrt(math.pow(MASS/(2.0*np.pi*KB*T), 3))
 
-mb = np.zeros([600, 2])                     # maxwell boltzman speed distribution
+mb = np.zeros([800, 2])                     # maxwell boltzman speed distribution
 TARGET_V = math.sqrt(3.0*KB*T/MASS)         # Initial velocity of simulation
 print(TARGET_V)
 # sample maxwell boltzman from 0 to 600 m/s
 STEP = 1
-for i in range(1, 600):
+for i in range(1, 800):
     this_v = STEP*i                         # Current velocity
     mb[i, 0] = (math.exp(-MASS*(this_v)*(this_v)/(2*KB*T))
                 * SCALE_FACTOR*4*np.pi*this_v*this_v)
     mb[i, 0] = mb[i, 0]                     # P(v) at this time point
     mb[i, 1] = this_v
 
-data_bin2 = np.zeros([300,1])
-mb_bin2 = np.zeros([300,1])
-for i in range(0,300):
-    data_bin2[i] = data[(i*2)]
-    data_bin2[i] = data_bin2[i] = data[(i*2)+1]
-    mb_bin2[i] = mb[i*2,1]+0.5
 # Plot data
 plt.figure(figsize=(15,8))
 plt.rcParams.update({'font.size': 20})
 plt.plot(mb[:, 1], mb[:, 0], 'k')
 #plt.plot([TARGET_V, TARGET_V], [0, .005], '--k')
 
-plt.plot(mb_bin2, data_bin2/np.sum(data))
+plt.plot(mb[:,1], data/np.sum(data))
 plt.xlabel('speed (m/s)')
 plt.ylabel('P(speed)  (s/m)')
-plt.axis([0, 600, 0, 0.005])
+plt.axis([0, 800, 0, 0.005])
 plt.savefig('O2_vel_dist.png', bbox_inches='tight')
 plt.show()

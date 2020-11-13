@@ -210,7 +210,7 @@
       PARAMETER (massO2=massO*2.0) ! in kg from kg/mol rahman64
 
       INTEGER nstep ! number of steps in the simulation
-      PARAMETER (nstep=200000)!1000000
+      PARAMETER (nstep=100000)!1000000
 
       INTEGER nsave ! frequency to save data
       PARAMETER (nsave=10)
@@ -251,7 +251,7 @@
       INTEGER nDOF            ! Atomic DOF
       PARAMETER (nDOF=5)
       REAL*8 KE_Temp          ! Conversion between KE and Temp
-      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*(nMol*nAtomPer)))
+      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*(nMol)))
 
       ! Variables to attempt leap frog generation of new r,v,a
       REAL*8 force(nMol,nAtomPer,3)   ! the force on each particle
@@ -282,9 +282,10 @@
       PARAMETER (v_bin_width = 1.0)
       REAL*8 this_vel                     ! speed of this atom
       INTEGER vnbin                       ! number of velocity bins
-      PARAMETER (vnbin=600)
+      PARAMETER (vnbin=800)
       INTEGER vel_bin                     ! Loop variable
       INTEGER vel_hist(vnbin)             ! histogram data
+      REAL*8 mol_vel(3)
 
       ! Variables for mean squared discplcement
       INTEGER num_mds_steps               ! Number of time steps to use
@@ -323,7 +324,7 @@
       OPEN(98,FILE="Vel_distribution_O2.txt")  ! Speed histogram
 
       !Set to NVT or NVE
-      is_NVT=1
+      is_NVT=0
 
       !----------------------
       ! Read in intial file
@@ -614,19 +615,33 @@
         !--------------------------------------------
         IF(MOD(time_loop,nsave).EQ.0) THEN
           ! Add data to speed distribution
+
             DO I=1,nMol
-              DO J=1,nAtomPer
-                this_vel = 0.0
-                DO K=1,3
-                  this_vel = this_vel+vel(I,J,K)*vel(I,J,K)
-                end do
-                this_vel = sqrt(this_vel)
-                vel_bin=(FLOOR((this_vel-vel_min)/v_bin_width))+1
-                IF (vel_bin.LE.vnbin) THEN
-                  vel_hist(vel_bin)=vel_hist(vel_bin)+1
-                END IF
+
+              ! Need molecular velocity
+
+              ! Get velocity of first molecule
+              mol_vel(1) = vel(I,1,1)*massO/massO2
+              mol_vel(2) = vel(I,1,2)*massO/massO2
+              mol_vel(3) = vel(I,1,3)*massO/massO2
+              DO J=2,nAtomPer
+                DO K =1,3
+                  mol_vel(K) = mol_vel(K) + vel(I,J,K)*massO/massO2
+                END DO
               END DO
-            end do
+              
+              ! get speed of particle
+              this_vel = 0.0
+              DO K=1,3
+                this_vel = this_vel+mol_vel(K)*mol_vel(K)
+              end do
+              this_vel = sqrt(this_vel)
+              vel_bin=(FLOOR((this_vel-vel_min)/v_bin_width))+1
+              IF (vel_bin.LE.vnbin) THEN
+                vel_hist(vel_bin)=vel_hist(vel_bin)+1
+              END IF
+              
+            end do ! End loop of nMol
 
 C            resname='   O'
 C            IF(is_NVT <2) THEN

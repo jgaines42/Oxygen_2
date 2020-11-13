@@ -20,7 +20,7 @@ average_auto = data
 DT = 4.0E-15/(1E-12)       # Time step in ps
 DT_fs = 4.0E-15            # Time step in s
 NUMBER_ATOMS = 500          # Number of atoms
-NUMBER_TIME = 200000         # Number of time steps
+NUMBER_TIME = 300000         # Number of time steps
 EQUILIBRIUM_START = 0       # When equlibirum starts (in the NUMBER_TIME)
 number_steps = 1000
 NUMBER_STARTS = NUMBER_TIME - EQUILIBRIUM_START-number_steps
@@ -41,7 +41,7 @@ plt.xlabel('time (ps)')
 plt.ylabel('$C_{vv}(t), (\mathrm{m^2/s^2})$')
 plt.plot(all_steps,average_auto, 'k')
 plt.plot([0, all_steps[number_steps-1]], [0, 0])
-#plt.axis([0, 1.5, -10000,60000])
+plt.axis([0, 4, -10000,120000])
 plt.savefig('Ar_CVV.png', bbox_inches='tight')
 plt.show()
 
@@ -53,7 +53,7 @@ plt.plot(all_steps,average_auto/average_auto[0], 'k')
 plt.xlabel('time (ps)')
 plt.ylabel('$C_{vv}(t), (\mathrm{m^2/s^2})$')
 #plt.plot([0, 1.5], [0, 0])
-#plt.axis([0, 1.5, -0.2,1])
+plt.axis([0, 1.5, -0.2,4])
 plt.show()
 plt.savefig('Ar_CVV_normalized.png', bbox_inches='tight')
 
@@ -66,8 +66,8 @@ for i in range(0,len(average_auto)):
     all_steps[i] = i*DT_fs         # in s
 
 # Fit tail of data to exponential
-print(all_steps[350])
-popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, all_steps[350:number_steps], average_auto[350:number_steps], p0=[-20000,-3E12])
+print(all_steps[200])
+popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, all_steps[200:number_steps], average_auto[200:number_steps], p0=[-20000,-3E12])
 perr_exponential = np.sqrt(np.diag(pcov_exponential))
 print("pre-exponential factor = %0.2f (+/-) %0.2f" % (popt_exponential[0], perr_exponential[0]))
 print("rate constant = %0.2f (+/-) %0.2f" % (popt_exponential[1], perr_exponential[1]))
@@ -97,6 +97,6 @@ print(integral_15*(100*100) )
 print(integral_15p*(100*100) )
 
 # Calculate diffusion coefficient
-D = (integral_15+integral_15p)/5.0 # m^2/s
+D = (integral_15+integral_15p)/3.0 # m^2/s
 D = (D)*(100*100)                  # cm^2/s
 print(D)

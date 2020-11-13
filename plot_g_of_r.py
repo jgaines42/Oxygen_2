@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt  # type: ignore
 # Column 2: number of points in that bin
 data = np.loadtxt('G_r_all_distances_O2.txt')
 
-NUM_TIME_STEPS = (200000)/10         # Number of time steps
+NUM_TIME_STEPS = (300000)/10         # Number of time steps
 SIGMA = 0.3006000E-9             
 
 data[:, 0] = data[:, 0]       # Convert distance to units of sigma 
@@ -48,7 +48,7 @@ plt.plot(bins_list[0:nbins], g_of_r[0:nbins])
 plt.plot([0, bins_list[nbins-1]], [1, 1], 'k')
 plt.xlabel('$r$ (nm)')
 plt.ylabel('$g(r)$')
-plt.axis([0, 1.25, 0, 3])
+plt.axis([0, 1.25, 0, 2])
 plt.minorticks_on()
 plt.savefig('O2_Gr.png', bbox_inches='tight')
 g1 = np.concatenate((bins_list, g_of_r))

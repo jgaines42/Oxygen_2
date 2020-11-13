@@ -233,7 +233,7 @@
       INTEGER nDOF            ! Atomic DOF
       PARAMETER (nDOF=5)
       REAL*8 KE_Temp          ! Conversion between KE and Temp
-      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*(nMol*nAtomPer)))
+      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*(nMol)))
       
       ! Variables to attempt leap frog generation of new r,v,a
       REAL*8 force(nMol,nAtomPer,3) ! the force on each particle

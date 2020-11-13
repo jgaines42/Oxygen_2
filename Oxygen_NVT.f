@@ -288,7 +288,7 @@ C       end function
       INTEGER nDOF            ! Atomic DOF
       PARAMETER (nDOF=5)
       REAL*8 KE_Temp          ! Conversion between KE and Temp
-      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*(nMol*nAtomPer)))
+      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*(nMol)))
 
       ! Variables for g(r)
       INTEGER nGrBins,ibin

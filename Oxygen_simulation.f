@@ -17,25 +17,23 @@
         REAL*8, intent(in) :: velold(nMol,nAtomPer,3)  ! velocity array
         REAL*8, intent(in) :: vel1(nMol,nAtomPer,3)  ! velocity array
 
-        REAL*8, intent(in):: mass           ! mass of 1 atom
-        REAL*8            :: ke             ! output
+        REAL*8, intent(in):: mass           ! mass of molecule
+        REAL*8             :: ke              ! output
         INTEGER I,J,K
-        REAL*8 vel_mid
+        REAL*8 vel_mid, com_vel
         ke=0.0
 
         ! Loop over all atoms
         DO I=1,nMol
-
-          DO J=1,nAtomPer
-
-            ! Loop over x,y,z components of velocity
-            DO K=1,3
-                ! Calculate the mid point velocity
+          ! Loop over x,y,z components of velocity
+           DO K=1,3
+            DO J=1,nAtomPer
                 vel_mid=0.5*(velold(I,J,K)+vel1(I,J,K))
-                ke=ke+vel_mid**2    ! sum vel^2
-              END DO
+                ke=ke+(vel_mid)**2    ! sum vel^2
             END DO
+            
           END DO
+        END DO
 
         ke = 0.5*ke*mass          ! calculate kinetic energy
 
@@ -182,7 +180,7 @@
       PARAMETER (NA=6.02214076D23)
 
       REAL*8 BOLTZ
-      PARAMETER (BOLTZ=1.38064852D-23) ! in J/K
+      PARAMETER (BOLTZ=1.38064852D-23) ! in J/K or m^2 kg /(s^2 K)
 
       ! Declare functions
       REAL*8 kinetic_energy
@@ -251,7 +249,7 @@
       INTEGER nDOF            ! Atomic DOF
       PARAMETER (nDOF=5)
       REAL*8 KE_Temp          ! Conversion between KE and Temp
-      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*(nMol)))
+      PARAMETER (KE_Temp = 2.0/(REAL(nDOF)*BOLTZ*nMol))
 
       ! Variables to attempt leap frog generation of new r,v,a
       REAL*8 force(nMol,nAtomPer,3)   ! the force on each particle
@@ -289,7 +287,7 @@
 
       ! Variables for mean squared discplcement
       INTEGER num_mds_steps               ! Number of time steps to use
-      PARAMETER (num_mds_steps=8000)
+      PARAMETER (num_mds_steps=3000)
       INTEGER MSD_I1, MSD_I2, MSD_loop    ! index and loop variables
       REAL*8 msd(num_mds_steps)           ! msd data
       REAL*8 p(num_mds_steps,nMol,3)     ! store last N positions

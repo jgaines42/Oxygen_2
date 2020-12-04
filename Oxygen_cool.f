@@ -10,34 +10,33 @@
       !   ke: Total kinetic energy in the system
       !-------------------------------------------------------------
       function kinetic_energy(nMol,nAtomPer,velold,vel1,mass) result(ke)
+        Implicit none
         INTEGER, intent(in):: nMol        ! number of molecule
         INTEGER, intent(in):: nAtomPer        ! number of atoms per mol
         REAL*8, intent(in) :: velold(nMol,nAtomPer,3)  ! velocity array
         REAL*8, intent(in) :: vel1(nMol,nAtomPer,3)  ! velocity array
 
-        REAL*8, intent(in):: mass           ! mass of 1 atom
+        REAL*8, intent(in):: mass           ! mass of molecule
         REAL*8             :: ke              ! output
         INTEGER I,J,K
-        REAL*8 vel_mid
+        REAL*8 vel_mid, com_vel
         ke=0.0
 
         ! Loop over all atoms
         DO I=1,nMol
-
-          DO J=1,nAtomPer
-            ! Loop over x,y,z components of velocity
-            !
-            DO K=1,3
+          ! Loop over x,y,z components of velocity
+           DO K=1,3
+            DO J=1,nAtomPer
                 vel_mid=0.5*(velold(I,J,K)+vel1(I,J,K))
-                ke=ke+vel_mid**2    ! sum vel^2
-              END DO
+                ke=ke+(vel_mid)**2    ! sum vel^2
             END DO
+            
           END DO
+        END DO
 
         ke = 0.5*ke*mass          ! calculate kinetic energy
 
       end function
-
 
       !-------------------------------------------------------------
       ! function run_SHAKE: "Shake" bonds to fix bond lengths
@@ -52,6 +51,7 @@
       !-------------------------------------------------------------
       function run_SHAKE(nMol,nAPer,pos,pos_old,vel,
      :mass,tbl_SQ,dt) result(mass_term)
+        Implicit none
         INTEGER, intent(in):: nMol        ! number of molecule
         INTEGER, intent(in):: nAPer        ! number of atoms per mol
         REAL*8:: pos(nMol,nAPer,3)  ! position array
@@ -60,8 +60,8 @@
         REAL*8, intent(in):: mass           ! mass of 1 atom
         REAL*8, intent(in)::tbl_SQ
         REAL*8, intent(in)::dt
-        INTEGER I,JA,JB,K
-        REAL*8 thisLength_SQ,dot_prod,g
+        INTEGER I,JA,JB,K,J,dev_count,tau
+        REAL*8 thisLength_SQ,dot_prod,g,correction
         REAL*8 bond_vector(3), old_bond_vector(3)
         REAL*8 mass_term
         LOGICAL flag
@@ -114,7 +114,7 @@
               END IF
               IF (dev_count.EQ.500) THEN
                  WRITE(100,*)"too many iterations in SHAKE"
-                 WRITE(100,*)'in step ',N
+                 WRITE(100,*)'in step ',dev_count
                  WRITE(100,*)'in molecule ',I
               END IF
               
@@ -319,7 +319,7 @@
         DO J=1,nAtomPer
           DO K=1,3                       ! Loop over x,y,z components
               pos(I,J,K)=pos(I,J,K)*1.0E-9    ! from nm to m
-              vel(I,J,K)=vel(I,J,K)*1.0E2     ! from nm/ps to m/s
+              vel(I,J,K)=vel(I,J,K)*1.0E3     ! from nm/ps to m/s
               accel(I,J,K) = 0.0            ! initialize acceleration to 0
               force(I,J,K) = 0.0            ! initialize forces to 0
               vel_sum(K)=vel_sum(K)+vel(I,J,K)  ! Calculate total velocity of system
@@ -529,11 +529,17 @@
              WRITE(91,*)(nMol*nAtomPer)
 
              DO I=1,nMol
+                DO K=1,3
+                  vel_sum(K)=pos(I,1,K)-length*ANINT(pos(I,1,K)/Length)
+                END DO
                 WRITE(91,31)I,resname,atomname1,I,
-     :(pos(I,1,K)*1.0E9,K=1,3),
+     :(vel_sum(K)*1.0E9,K=1,3),
      :(vel(I,1,K)*1.0E-4,K=1,3)
+                DO K=1,3
+                  vel_sum(K)=pos(I,2,K)-length*ANINT(pos(I,1,K)/Length)
+                END DO
                  WRITE(91,31)I,resname,atomname2,I,
-     :(pos(I,2,K)*1.0E9,K=1,3),
+     :(vel_sum(K)*1.0E9,K=1,3),
      :(vel(I,2,K)*1.0E-4,K=1,3)
               END DO
 
@@ -555,10 +561,10 @@
       DO I=1,nMol
          WRITE(95,31)I,resname,atomname1,I,
      :(vel(I,1,K)*1.0E-3,K=1,3),
-     :(vel(I,1,K)*1.0E-4,K=1,3)
+     :(vel(I,1,K)*1.0E-3,K=1,3)
           WRITE(95,31)I,resname,atomname2,I,
      :(vel(I,2,K)*1.0E-3,K=1,3),
-     :(vel(I,2,K)*1.0E-4,K=1,3)
+     :(vel(I,2,K)*1.0E-3,K=1,3)
        END DO
 
        WRITE(91,*)Length*1.0E9,Length*1.0E9,Length*1.0E9
@@ -569,10 +575,10 @@
       DO I=1,nMol
         WRITE(98,31)I,resname,atomname1,I,
      :(pos(I,1,K)*1.0E9,K=1,3),
-     :(vel(I,1,K)*1.0E-2,K=1,3)
+     :(vel(I,1,K)*1.0E-3,K=1,3)
         WRITE(98,31)I,resname,atomname2,I,
      :(pos(I,2,K)*1.0E9,K=1,3),
-     :(vel(I,2,K)*1.0E-2,K=1,3)
+     :(vel(I,2,K)*1.0E-3,K=1,3)
       END DO
       WRITE(98,*)Length*1.0E9,Length*1.0E9,Length*1.0E9
 

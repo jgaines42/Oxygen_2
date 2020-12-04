@@ -10,29 +10,30 @@
       !   ke: Total kinetic energy in the system
       !-------------------------------------------------------------
       function kinetic_energy(nMol,nAtomPer,velold,vel1,mass) result(ke)
+        IMPLICIT NONE
+
         INTEGER, intent(in):: nMol        ! number of molecule
         INTEGER, intent(in):: nAtomPer        ! number of atoms per mol
         REAL*8, intent(in) :: velold(nMol,nAtomPer,3)  ! velocity array
         REAL*8, intent(in) :: vel1(nMol,nAtomPer,3)  ! velocity array
 
-        REAL*8, intent(in):: mass           ! mass of 1 atom
+        REAL*8, intent(in):: mass           ! mass of molecule
         REAL*8             :: ke              ! output
         INTEGER I,J,K
-        REAL*8 vel_mid
+        REAL*8 vel_mid, com_vel
         ke=0.0
 
         ! Loop over all atoms
         DO I=1,nMol
-
-          DO J=1,nAtomPer
-            ! Loop over x,y,z components of velocity
-            !
-            DO K=1,3
+          ! Loop over x,y,z components of velocity
+           DO K=1,3
+            DO J=1,nAtomPer
                 vel_mid=0.5*(velold(I,J,K)+vel1(I,J,K))
-                ke=ke+vel_mid**2    ! sum vel^2
-              END DO
+                ke=ke+(vel_mid)**2    ! sum vel^2
             END DO
+            
           END DO
+        END DO
 
         ke = 0.5*ke*mass          ! calculate kinetic energy
 
@@ -52,6 +53,7 @@
       !-------------------------------------------------------------
       function run_SHAKE(nMol,nAPer,pos,pos_old,vel,
      :mass,tbl_SQ,dt) result(mass_term)
+        IMPLICIT NONE
         INTEGER, intent(in):: nMol        ! number of molecule
         INTEGER, intent(in):: nAPer        ! number of atoms per mol
         REAL*8:: pos(nMol,nAPer,3)  ! position array
@@ -60,12 +62,14 @@
         REAL*8, intent(in):: mass           ! mass of 1 atom
         REAL*8, intent(in)::tbl_SQ
         REAL*8, intent(in)::dt
-        INTEGER I,JA,JB,K
-        REAL*8 thisLength_SQ,dot_prod,g
+        INTEGER I,JA,JB,K,J,dev_count
+        REAL*8 thisLength_SQ,dot_prod,g,correction
         REAL*8 bond_vector(3), old_bond_vector(3)
-        REAL*8 mass_term
+        REAL*8 mass_term,tau
+        REAL*8 tolerance
         LOGICAL flag
 
+        tolerance = 1.0E-7
         mass_term=((1.0/mass)+(1.0/mass))
 
         ! Loop over all molecules
@@ -79,12 +83,13 @@
             DO JA=1,nAPer-1
                DO JB=JA+1,nAPer
 
+                  ! Calculate current bond length
                   thisLength_SQ=0.0
                   dot_prod=0.0
 
                   DO K=1,3
-                     bond_vector(K)=pos(I,JA,K)-pos(I,JB,K)
-                     thisLength_SQ=thisLength_SQ+bond_vector(K)**2
+                     bond_vector(K) = pos(I,JA,K)-pos(I,JB,K)
+                     thisLength_SQ = thisLength_SQ+bond_vector(K)**2
 
                      old_bond_vector(K)=pos_old(I,JA,K)-pos_old(I,JB,K)
                      dot_prod=dot_prod+bond_vector(K)*old_bond_vector(K)
@@ -104,18 +109,33 @@
                      thisLength_SQ=thisLength_SQ+bond_vector(K)**2
                   END DO
 
+                  ! See if within tolerance
+                  IF (thisLength_SQ.NE.0.0) THEN
+                    tau=abs(thisLength_SQ-tbl_SQ)/(2.0*tbl_SQ)
+                    IF (tau.GE.tolerance) THEN
+                       flag=.TRUE.
+                    END IF
+                    dev_count=dev_count+1
+                    IF (dev_count.EQ.500) THEN
+                       WRITE(100,*)"too many iterations in SHAKE"
+                       WRITE(100,*)'in step ',dev_count
+                       WRITE(100,*)'in molecule ',I
+                       STOP
+                    END IF
+                  END IF
+
                 END DO ! JB loop
               END DO ! JA loop
 
               ! Check if we've met the tolerance
               tau=abs(thisLength_SQ-tbl_SQ)/(2.0*tbl_SQ)
-              IF (tau > 1.0E-7) THEN
+              IF (tau > tolerance) THEN
                  flag=.TRUE.
               END IF
 
               IF (dev_count.EQ.500) THEN
                  WRITE(100,*)"too many iterations in SHAKE"
-                 WRITE(100,*)'in step ',N
+                 WRITE(100,*)'in step ',dev_count
                  WRITE(100,*)'in molecule ',I
               END IF
               
@@ -241,18 +261,11 @@
       REAL*8 accel(nMol,nAtomPer,3) ! acceleration
       REAL*8 is_NVT_scale,KE,vel_2 ! for KE calculation
 
-
       ! Shake algorithm
-      REAL*8 delr(3),delr_old(3),g,correction
-      REAL*8 bond_length,new_delr
+      REAL*8 bond_length
       PARAMETER (bond_length=0.1208E-9) ! m from Perng01
       REAL*8 blSQ
       PARAMETER (blSQ=bond_length**2)
-      REAL*8 mass_term
-      PARAMETER (mass_term=((1.0/massO)+(1.0/massO)))
-      REAL*8 dot_prod ! the dot product of old and new distance vectors
-      REAL*8 delr_magSQ,delr_old_mag
-      REAL*8 max_X,max_Y,max_Z
 
       ! Variables for g(r)
       REAL*8 bin_ends(100)
@@ -313,7 +326,7 @@
         DO J=1,nAtomPer
           DO K=1,3                       ! Loop over x,y,z components
               pos(I,J,K)=pos(I,J,K)*1.0E-9    ! from nm to m
-              vel(I,J,K)=vel(I,J,K)*1.0E2     ! from nm/ps to m/s
+              vel(I,J,K)=vel(I,J,K)*1.0E3     ! from nm/ps to m/s
               accel(I,J,K) = 0.0            ! initialize acceleration to 0
               force(I,J,K) = 0.0            ! initialize forces to 0
               vel_sum(K)=vel_sum(K)+vel(I,J,K)  ! Calculate total velocity of system
@@ -326,6 +339,7 @@
       vel_scale(2) = vel_sum(2)/(nMol*nAtomPer)
       vel_scale(3) = vel_sum(3)/(nMol*nAtomPer)
       print*,Length
+      print*,vel_scale
 
 
       ! Calculate kinetic energy and temperature
@@ -389,8 +403,8 @@
         ! loop over all pairs of atoms
         DO I=1,nMol-1
           DO J=i+1,nMol
-            DO M=1,2                  ! Atoms in molecule 1
-              DO N=1,2                ! Atoms in molecule 2
+            DO M=1,nAtomPer                 ! Atoms in molecule 1
+              DO N=1,nAtomPer                ! Atoms in molecule 2
 
                 dist_ij = 0.0             ! reset dist_ij to 0
 
@@ -435,9 +449,7 @@
         ! This is done using leap frog algorithm
         ! Remember that vel is really vel at t-0.5dt
         !--------------------------------------------
-        max_X = 0.0
-        max_Y = 0.0
-        max_Z = 0.0
+
         DO I=1,nMol
           DO J=1,nAtomPer
            DO K=1,3
@@ -497,7 +509,7 @@
             vel_sum(1) = vel_sum(1)/(nAtomPer*nMol)
             vel_sum(2) = vel_sum(2)/(nAtomPer*nMol)
             vel_sum(3) = vel_sum(3)/(nAtomPer*nMol)
-
+            print*,vel_sum
             ! shift velocity to keep whole system from moving in a direction
             DO I=1,nMol                         ! Loop over all atoms
               DO J=1,nAtomPer
@@ -522,10 +534,10 @@
              DO I=1,nMol
                 WRITE(91,31)I,resname,atomname1,I,
      :(pos(I,1,K)*1.0E9,K=1,3),
-     :(vel(I,1,K)*1.0E-4,K=1,3)
+     :(vel(I,1,K)*1.0E-3,K=1,3)
                  WRITE(91,31)I,resname,atomname2,I,
      :(pos(I,2,K)*1.0E9,K=1,3),
-     :(vel(I,2,K)*1.0E-4,K=1,3)
+     :(vel(I,2,K)*1.0E-3,K=1,3)
               END DO
 
             WRITE(91,*)Length*1.0E9,Length*1.0E9,Length*1.0E9
@@ -546,10 +558,10 @@
       DO I=1,nMol
          WRITE(95,31)I,resname,atomname1,I,
      :(vel(I,1,K)*1.0E-3,K=1,3),
-     :(vel(I,1,K)*1.0E-4,K=1,3)
+     :(vel(I,1,K)*1.0E-3,K=1,3)
           WRITE(95,31)I,resname,atomname2,I,
      :(vel(I,2,K)*1.0E-3,K=1,3),
-     :(vel(I,2,K)*1.0E-4,K=1,3)
+     :(vel(I,2,K)*1.0E-3,K=1,3)
        END DO
 
        WRITE(91,*)Length*1.0E9,Length*1.0E9,Length*1.0E9
@@ -560,10 +572,10 @@
       DO I=1,nMol
         WRITE(98,31)I,resname,atomname1,I,
      :(pos(I,1,K)*1.0E9,K=1,3),
-     :(vel(I,1,K)*1.0E-2,K=1,3)
+     :(vel(I,1,K)*1.0E-3,K=1,3)
         WRITE(98,31)I,resname,atomname2,I,
      :(pos(I,2,K)*1.0E9,K=1,3),
-     :(vel(I,2,K)*1.0E-2,K=1,3)
+     :(vel(I,2,K)*1.0E-3,K=1,3)
       END DO
       WRITE(98,*)Length*1.0E9,Length*1.0E9,Length*1.0E9
 

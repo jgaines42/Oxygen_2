@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt   # type: ignore
 ##############################################
 
 NVE_START = 0
-NUM_RUNS = 300000
+NUM_RUNS = 100000
 MASS = 0.016*2.0/6.02E23              # Atomic mass
 Timestep = 4.0E-15
 data = np.loadtxt('Energies_O2.txt')

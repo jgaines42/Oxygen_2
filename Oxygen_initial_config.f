@@ -107,8 +107,8 @@
       WRITE(92,*)'A box of liquid O2'
       WRITE(92,*)natom*2
 
-      icount=1      ! stores which atom we are on
-      rescount=1
+      icount=0      ! stores which atom we are on
+      rescount=0
       ! Loop over all repeats of the unit cell
       DO I=1,repeats
          dx=REAL(I-1)*dist_unit
@@ -146,8 +146,8 @@
 
                 WRITE(91,31)rescount,resname,atomname1,icount,x,y,z,vx,
      :vy,vz
-                WRITE(92,31)rescount,resname,atomname1,icount,10.0*vx,
-     :10.0*vy,10.0*vz,vx,vy,vz
+                WRITE(92,31)rescount,resname,atomname1,icount,vx,
+     :vy,vz,vx,vy,vz
                 icount=icount+1
 
                 ! Add second molecule
@@ -177,8 +177,8 @@
 
                 WRITE(91,31)rescount,resname,atomname2,icount,x,y,z,vx,
      :vy,vz
-                WRITE(92,31)rescount,resname,atomname2,icount,10.0*vx,
-     :10.0*vy,10.0*vz,vx,vy,vz
+                WRITE(92,31)rescount,resname,atomname2,icount,vx,
+     :vy,vz,vx,vy,vz
                 icount=icount+1
                 rescount = rescount+1
 
@@ -194,5 +194,6 @@
 
       CLOSE(91)
       CLOSE(92)
-
+      print*,icount
+      print*,rescount
       END

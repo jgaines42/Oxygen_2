@@ -41,7 +41,7 @@ plt.xlabel('time (ps)')
 plt.ylabel('$C_{vv}(t), (\mathrm{m^2/s^2})$')
 plt.plot(all_steps,average_auto, 'k')
 plt.plot([0, all_steps[number_steps-1]], [0, 0])
-plt.axis([0, 4, -10000,120000])
+plt.axis([0, 4, -10000,60000])
 plt.savefig('Ar_CVV.png', bbox_inches='tight')
 plt.show()
 
@@ -66,8 +66,8 @@ for i in range(0,len(average_auto)):
     all_steps[i] = i*DT_fs         # in s
 
 # Fit tail of data to exponential
-print(all_steps[200])
-popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, all_steps[200:number_steps], average_auto[200:number_steps], p0=[-20000,-3E12])
+print(all_steps[150])
+popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, all_steps[150:number_steps], average_auto[150:number_steps], p0=[-20000,-3E12])
 perr_exponential = np.sqrt(np.diag(pcov_exponential))
 print("pre-exponential factor = %0.2f (+/-) %0.2f" % (popt_exponential[0], perr_exponential[0]))
 print("rate constant = %0.2f (+/-) %0.2f" % (popt_exponential[1], perr_exponential[1]))

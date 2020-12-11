@@ -199,7 +199,7 @@
       PARAMETER (nAtomPer=2) ! From rahman64
 
       REAL*8 eps ! epsilon value for calculating LJ potential
-      PARAMETER (eps=120.0*BOLTZ) ! epsilon in J, from rahman64
+      PARAMETER (eps=48.0*BOLTZ) ! epsilon in J, from rahman64
 
       REAL*8 sigma ! sigma value for calculating LJ potential
       PARAMETER (sigma=0.3006000E-9) ! sigma in m, from nm rahman64

@@ -194,7 +194,7 @@
       PARAMETER (nAtomPer=2) ! From rahman64
 
       REAL*8 eps ! epsilon value for calculating LJ potential
-      PARAMETER (eps=120.0*BOLTZ) ! epsilon in J, from rahman64
+      PARAMETER (eps=48.0*BOLTZ) ! epsilon in J, from rahman64
 
       REAL*8 sigma ! sigma value for calculating LJ potential
       PARAMETER (sigma=0.3006000E-9) ! sigma in m, from nm rahman64
@@ -208,7 +208,7 @@
       PARAMETER (massO2=massO*2.0) ! in kg from kg/mol rahman64
 
       INTEGER nstep ! number of steps in the simulation
-      PARAMETER (nstep=100000)!1000000
+      PARAMETER (nstep=300000)!1000000
 
       INTEGER nsave ! frequency to save data
       PARAMETER (nsave=10)
@@ -352,7 +352,7 @@
         DO J=1,nAtomPer
           DO K=1,3                       ! Loop over x,y,z components
               pos(I,J,K)=pos(I,J,K)*1.0E-9    ! from nm to m
-              vel(I,J,K)=vel(I,J,K)*1.0E2     ! from nm/ps to m/s
+              vel(I,J,K)=vel(I,J,K)*1.0E3     ! from nm/ps to m/s
               accel(I,J,K) = 0.0            ! initialize acceleration to 0
               force(I,J,K) = 0.0            ! initialize forces to 0
               pos_old(I,J,K) = pos(I,J,K)

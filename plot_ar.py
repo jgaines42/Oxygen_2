@@ -54,7 +54,7 @@ plt.figure(figsize=(15,8))
 plt.plot(data4, data3, 'k')
 plt.xlabel('time (ps)')
 plt.ylabel('Temperature (K)')
-plt.axis([0, data4[data4.shape[0]-1], 71, 83])
+#plt.axis([0, data4[data4.shape[0]-1], 71, 83])
 plt.plot([0, data4[data4.shape[0]-1]], [np.mean(data3[NVE_START:NUM_RUNS]),np.mean(data3[NVE_START:NUM_RUNS])], 'r')
 plt.plot([0, data4[data4.shape[0]-1]], [77, 77], '--r')
 
@@ -84,7 +84,7 @@ print(np.std(data3[NVE_START:NUM_RUNS]))
 
 # Calculate average temp in NVE
 mean_temp = np.mean(data3[NVE_START:NUM_RUNS])
-massO=0.016/(6.02E23)
+massO=0.016*2.0/(6.02E23)
 eq_v = (3.0*(1.38064852E-23)*mean_temp/massO)
 print(eq_v)
 # Plot 100 time step moving average of Temp

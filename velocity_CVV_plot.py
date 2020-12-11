@@ -24,7 +24,7 @@ NUMBER_TIME = 300000         # Number of time steps
 EQUILIBRIUM_START = 0       # When equlibirum starts (in the NUMBER_TIME)
 number_steps = 1000
 NUMBER_STARTS = NUMBER_TIME - EQUILIBRIUM_START-number_steps
-
+print(NUMBER_STARTS)
 # Normalilze data by the number of time steps in it and the number of atoms
 average_auto = np.divide(average_auto, NUMBER_STARTS)
 average_auto = np.divide(average_auto, NUMBER_ATOMS)
@@ -41,7 +41,7 @@ plt.xlabel('time (ps)')
 plt.ylabel('$C_{vv}(t), (\mathrm{m^2/s^2})$')
 plt.plot(all_steps,average_auto, 'k')
 plt.plot([0, all_steps[number_steps-1]], [0, 0])
-plt.axis([0, 4, -10000,60000])
+plt.axis([0, 4, -10000,61000])
 plt.savefig('Ar_CVV.png', bbox_inches='tight')
 plt.show()
 
@@ -55,9 +55,9 @@ plt.ylabel('$C_{vv}(t), (\mathrm{m^2/s^2})$')
 #plt.plot([0, 1.5], [0, 0])
 plt.axis([0, 1.5, -0.2,4])
 plt.show()
-plt.savefig('Ar_CVV_normalized.png', bbox_inches='tight')
+plt.savefig('O2_CVV_normalized.png', bbox_inches='tight')
 
-np.savetxt('Ar_CVV_data.txt', average_auto)
+np.savetxt('O2_CVV_data.txt', average_auto)
 
 
 # Use time in seconds to fit data
@@ -66,8 +66,8 @@ for i in range(0,len(average_auto)):
     all_steps[i] = i*DT_fs         # in s
 
 # Fit tail of data to exponential
-print(all_steps[150])
-popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, all_steps[150:number_steps], average_auto[150:number_steps], p0=[-20000,-3E12])
+print(all_steps[250])
+popt_exponential, pcov_exponential = scipy.optimize.curve_fit(exponential, all_steps[250:number_steps], average_auto[250:number_steps], p0=[-20000,-3E12])
 perr_exponential = np.sqrt(np.diag(pcov_exponential))
 print("pre-exponential factor = %0.2f (+/-) %0.2f" % (popt_exponential[0], perr_exponential[0]))
 print("rate constant = %0.2f (+/-) %0.2f" % (popt_exponential[1], perr_exponential[1]))

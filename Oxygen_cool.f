@@ -179,7 +179,7 @@
       PARAMETER (nAtomPer=2) ! From rahman64
 
       REAL*8 eps ! epsilon value for calculating LJ potential
-      PARAMETER (eps=120.0*BOLTZ) ! epsilon in J, from rahman64
+      PARAMETER (eps=48.0*BOLTZ) ! epsilon in J, from rahman64
 
       REAL*8 sigma ! sigma value for calculating LJ potential
       PARAMETER (sigma=0.3006000E-9) ! sigma in m, from nm rahman64
@@ -211,7 +211,7 @@
       REAL*8 Tref2 !the reference temprerature for the thermostat
       PARAMETER (Tref2=77.00000) ! in K from Rahman64
       REAL*8 Temp_step
-      PARAMETER (Temp_step=(Tref1-Tref2)/nstep)
+      PARAMETER (Temp_step=(Tref1-Tref2)/(nstep/100.0))
       REAL*8 Tref
 
       REAL*8 Length ! Length of the box
@@ -474,8 +474,10 @@
 
             is_NVT_scale = sqrt(Tref/temp)  ! Scale for velocity
             ! Modify target temp
-            Tref = Tref - Temp_step
-
+            IF (MOD(time_loop,100)==0) THEN
+              Tref = Tref - Temp_step
+            END IF
+            print*,Tref
             ! Loop over all atoms and scale velocity
             DO I=1,nMol
               DO J=1,nAtomPer
@@ -534,13 +536,13 @@
                 END DO
                 WRITE(91,31)I,resname,atomname1,I,
      :(vel_sum(K)*1.0E9,K=1,3),
-     :(vel(I,1,K)*1.0E-4,K=1,3)
+     :(vel(I,1,K)*1.0E-3,K=1,3)
                 DO K=1,3
                   vel_sum(K)=pos(I,2,K)-length*ANINT(pos(I,1,K)/Length)
                 END DO
                  WRITE(91,31)I,resname,atomname2,I,
      :(vel_sum(K)*1.0E9,K=1,3),
-     :(vel(I,2,K)*1.0E-4,K=1,3)
+     :(vel(I,2,K)*1.0E-3,K=1,3)
               END DO
 
             WRITE(91,*)Length*1.0E9,Length*1.0E9,Length*1.0E9

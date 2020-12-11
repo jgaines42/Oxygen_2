@@ -202,9 +202,9 @@
       PARAMETER (nAtomPer=2)
 
       REAL*8 eps                    ! epsilon value for calculating LJ potential
-      PARAMETER (eps=120.0*BOLTZ)   ! epsilon in J
+      PARAMETER (eps=48.0*BOLTZ)    ! epsilon in J
 
-      REAL*8 sigma                  ! sigma value for calculating LJ potential
+      REAL*8 sigma                   ! sigma value for calculating LJ potential
       PARAMETER (sigma=0.3006000E-9) ! sigma in m
       
       REAL*8 sigma2   
@@ -541,10 +541,10 @@ C                 end IF ! if save_loop
       DO I=1,nMol
          WRITE(95,31)I,resname,atomname1,I,
      :(vel(I,1,K)*1.0E-3,K=1,3),
-     :(vel(I,1,K)*1.0E-4,K=1,3)
+     :(vel(I,1,K)*1.0E-3,K=1,3)
           WRITE(95,31)I,resname,atomname2,I,
      :(vel(I,2,K)*1.0E-3,K=1,3),
-     :(vel(I,2,K)*1.0E-4,K=1,3)
+     :(vel(I,2,K)*1.0E-3,K=1,3)
        END DO
 
        WRITE(91,*)Length*1.0E9,Length*1.0E9,Length*1.0E9
